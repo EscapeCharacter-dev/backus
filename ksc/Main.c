@@ -2,6 +2,7 @@
 #include "Tokens.h"
 #include "Parser.h"
 #include "NodeKinds.h"
+#include "IGenMod.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -101,12 +102,7 @@ int main(int argc, char *argv[])
 			abort();
 		KscLexFeed(ibuf);
 		KscTree *tree = KscParseExpr(0);
-		printTree(0, tree);
-		/*KscType type;
-		memset(&type, 0, sizeof(KscType));
-		KscParseType(&type);
-		printType((const KscType *const)&type);
-		putc('\n', stdout);*/
+		x86_64genm.genExpression(tree);
 	}
 	free(ibuf);
 	return 0;
