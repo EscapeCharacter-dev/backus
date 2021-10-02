@@ -7,9 +7,9 @@
 
 int main(void)
 {
-    char *ibuf = malloc(BUFLENGTH);
-    memset(ibuf, '!', sizeof(ibuf));
-    KscToken t;
-    memset(&t, 0, sizeof(KscToken));
-    while (KscLex(&t));
+	char *ibuf = malloc(BUFLENGTH);
+	memset(ibuf, '!', sizeof(ibuf));
+	KscToken t;
+	memset(&t, 0, sizeof(KscToken));
+	while (KscLex(&t)) ;
 }
