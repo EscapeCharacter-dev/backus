@@ -3,9 +3,73 @@
 
 #include "Types.h"
 
+static const char *const treeEnumString[] =
+{
+    "MALFORMED",
+    "<int>",
+    "<float>",
+    "<string>",
+    "<ident>",
+    "<module access>",
+    "<postfix increment>",
+    "<postfix decrement>",
+    "<function call>",
+    "<array subscript>",
+    "<member access>",
+    "<member access indirect by pointer>",
+    "<prefix increment>",
+    "<prefix decrement>",
+    "<unary plus>",
+    "<negation>",
+    "<logical not>",
+    "<bitwise not>",
+    "<cast>",
+    "<dereference>",
+    "<address of>",
+    "<sizeof>",
+    "<multiply>",
+    "<divide>",
+    "<remainder of division>",
+    "<add>",
+    "<subtract>",
+    "<left shift>",
+    "<right shift>",
+    "<lower>",
+    "<lower or equal>",
+    "<greater>",
+    "<greater or equal>",
+    "<equal>",
+    "<not equal>",
+    "<bitwise and>",
+    "<bitwise exclusive or>",
+    "<bitwise inclusive or>",
+    "<logical and>",
+    "<logical or>",
+    "<ternary>",
+    "<ternary+>",
+    "<throw>",
+    "<assign>",
+    "<add assign>",
+    "<sub assign>",
+    "<mul assign>",
+    "<div assign>",
+    "<mod assign>",
+    "<lsh assign>",
+    "<rsh assign>",
+    "<and assign>",
+    "<xor assign>",
+    "<or assign>",
+    "<comma>",
+};
+
 enum
 {
     KSC_TREE_MALFORMED = 0,     // <bad tree/missing>
+
+    KSC_TREE_LITERAL_INTEGER,   // [0-9]+
+    KSC_TREE_LITERAL_FLOAT,     // [0-9]+.[0-9]+
+    KSC_TREE_LITERAL_STRING,    // "this is an example string"
+    KSC_TREE_IDENTIFIER,        // [a-zA-Z0-9_]+
 
     KSC_TREE_MODULE_ACCESS,     // A::B
     KSC_TREE_POSTFIX_INC,       // A++

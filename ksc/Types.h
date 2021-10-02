@@ -50,7 +50,7 @@ typedef struct KscTree
     struct KscTree	*left;  // Left tree node
     struct KscTree	*right; // Right tree node
     uint32_t		kind;   // Binary tree kind
-    KscToken		*token; // Tree node
+    KscToken		token;  // Tree node
 } KscTree;
 
 #endif 

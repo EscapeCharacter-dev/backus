@@ -31,6 +31,9 @@ static struct CLexDriver
     int32_t lCount;
     int32_t cCount;
 } cLexDriver;
+static KscToken lastGoodToken;
+
+volatile KscToken *KscLexLastGoodTokenPtr(void) { return &lastGoodToken; }
 
 static char curCharacter(void)
 {
@@ -450,5 +453,6 @@ bool_t KscLex(KscToken *dest)
 lReturn:
     dest->column = cLexDriver.cCount;
     cLexDriver.cCount += inputStrPosition - pos;
+    if (result) lastGoodToken = *dest;
     return !!result; // clamping
 }

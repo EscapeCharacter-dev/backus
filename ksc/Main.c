@@ -1,6 +1,7 @@
 #include "Lex.h"
 #include "Tokens.h"
 #include "Parser.h"
+#include "NodeKinds.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -49,6 +50,17 @@ static void printType(const KscType *const type)
     }
 }
 
+static void printTree(int indent, KscTree *tree)
+{
+    for (int i = 0; i < indent; i++) printf("  ");
+    printf("%s", treeEnumString[tree->kind]);
+    printf(" %d", tree->token.kind);
+    if (!tree->left && !tree->right) printf(";\n");
+    else printf(":\n");
+    if (tree->left) printTree(indent + 1, tree->left);
+    if (tree->right) printTree(indent + 1, tree->right);
+}
+
 int main(int argc, char *argv[])
 {
     char *ibuf = malloc(262144000);
@@ -58,11 +70,13 @@ int main(int argc, char *argv[])
         printf(">>> ");
         if (!fgets(ibuf, 262144000, stdin)) abort();
         KscLexFeed(ibuf);
-        KscType type;
+        KscTree *tree = KscParseExpr(0);
+        printTree(0, tree);
+        /*KscType type;
         memset(&type, 0, sizeof(KscType));
         KscParseType(&type);
         printType((const KscType *const)&type);
-        putc('\n', stdout);
+        putc('\n', stdout);*/
     }
     free(ibuf);
     return 0;

@@ -5,5 +5,7 @@
 
 // Parses a type.
 bool_t KscParseType(KscType *type);
+// Parses an expression.
+KscTree *KscParseExpr(int oprec);
 
 #endif
