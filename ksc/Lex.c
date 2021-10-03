@@ -140,6 +140,8 @@ static int32_t tokOperator(void)
 	{
 	case -1:
 		return KSC_TOKEN_EOF;
+	case '$':
+	case '@':
 	case '~':
 	case '?':
 	case ',':

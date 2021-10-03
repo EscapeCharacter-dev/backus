@@ -78,7 +78,7 @@ static void printType(const KscType *const type)
 static void printTree(int indent, KscTree *tree)
 {
 	for (int i = 0; i < indent; i++)
-		printf("  ");
+		printf("-");
 	printf("%s", treeEnumString[tree->kind]);
 	printf(" %d", tree->token.kind);
 	if (!tree->left && !tree->right)
@@ -91,18 +91,21 @@ static void printTree(int indent, KscTree *tree)
 		printTree(indent + 1, tree->right);
 }
 
+extern KscIGenMod x86_64gm;
+
 int main(int argc, char *argv[])
 {
 	char *ibuf = malloc(262144000);
 	memset(ibuf, 0, sizeof(ibuf));
+	KscSelectGenerator(&x86_64gm);
 	while (1)
 	{
 		printf(">>> ");
 		if (!fgets(ibuf, 262144000, stdin))
 			abort();
+		KscGenInit();
 		KscLexFeed(ibuf);
-		KscTree *tree = KscParseExpr(0);
-		x86_64genm.genExpression(tree);
+		KscParseStmt();
 	}
 	free(ibuf);
 	return 0;

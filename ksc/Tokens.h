@@ -1,6 +1,8 @@
 #ifndef KSC_LEX_TOKENS_H
 #define KSC_LEX_TOKENS_H
 
+#include "GenModules/Gen-x86_64.h"
+
 #define CHAR2(x, y)             (x << 8 | y)
 #define CHAR3(x, y, z)          (x << 16 | y << 8 | z)
 
@@ -90,7 +92,11 @@ enum
 	KSC_IDENT,
 };
 
+#ifdef KSC_GENMODULES_X86_64_H
+#define KSC_PLATFORM_KEYWORDS GENMODULES_X86_64_KEYWORDS
+#else
 #define KSC_PLATFORM_KEYWORDS // for now, there's no platform keywords.
+#endif
 
 // keyword dictionary
 static struct { const char *key; int value; } keywordList[] =
