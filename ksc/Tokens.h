@@ -1,8 +1,6 @@
 #ifndef KSC_LEX_TOKENS_H
 #define KSC_LEX_TOKENS_H
 
-#include "GenModules/Gen-x86_64.h"
-
 #define CHAR2(x, y)             (x << 8 | y)
 #define CHAR3(x, y, z)          (x << 16 | y << 8 | z)
 

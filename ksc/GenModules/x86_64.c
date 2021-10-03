@@ -285,6 +285,15 @@ static uint64_t genGreaterEqual(KscTree *node, uint64_t acc, uint64_t condBranch
 	return l;
 }
 
+static uint64_t genLogicalNot(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, uint64_t condBranchSymbol2)
+{
+	uint64_t u = genExpr(node->left, acc, 0, 0);
+	fprintf(stdout, "\tcmp %s, 0\n", registers[u]);
+	fprintf(stdout, "\tsete %s\n", registers[reg8(u)]);
+	fprintf(stdout, "\tmovzx %s, %s\n", registers[u], registers[reg8(u)]);
+	return u;
+}
+
 static uint64_t genExpr(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, uint64_t condBranchSymbol2)
 {
 	switch (node->kind)
@@ -308,6 +317,7 @@ static uint64_t genExpr(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, 
 	case KSC_TREE_GREATER_EQUAL: return genGreaterEqual(node, acc, condBranchSymbol, condBranchSymbol2);
 	case KSC_TREE_EQUAL: return genEqual(node, acc, condBranchSymbol, condBranchSymbol2);
 	case KSC_TREE_NOT_EQUAL: return genNotEqual(node, acc, condBranchSymbol, condBranchSymbol2);
+	case KSC_TREE_LOGICAL_NOT: return genLogicalNot(node, acc, condBranchSymbol, condBranchSymbol2);
 	}
 }
 
