@@ -299,9 +299,9 @@ static uint64_t genLogicalAnd(KscTree *node, uint64_t acc, uint64_t condBranchSy
 	uint64_t l = genExpr(node->left, acc, 0, 0);
 	uint64_t r = genExpr(node->right, NOREG, 0, 0);
 	fprintf(stdout, "\ttest %s, %s\n", registers[l], registers[l]);
-	fprintf(stdout, "\tsete %s\n", registers[reg8(l)]);
+	fprintf(stdout, "\tsetne %s\n", registers[reg8(l)]);
 	fprintf(stdout, "\ttest %s, %s\n", registers[r], registers[r]);
-	fprintf(stdout, "\tsete %s\n", registers[reg8(r)]);
+	fprintf(stdout, "\tsetne %s\n", registers[reg8(r)]);
 	fprintf(stdout, "\tand %s, %s\n", registers[reg8(l)], registers[reg8(r)]);
 	fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
 	freeReg(r);
@@ -313,9 +313,9 @@ static uint64_t genLogicalOr(KscTree *node, uint64_t acc, uint64_t condBranchSym
 	uint64_t l = genExpr(node->left, acc, 0, 0);
 	uint64_t r = genExpr(node->right, NOREG, 0, 0);
 	fprintf(stdout, "\ttest %s, %s\n", registers[l], registers[l]);
-	fprintf(stdout, "\tsete %s\n", registers[reg8(l)]);
+	fprintf(stdout, "\tsetne %s\n", registers[reg8(l)]);
 	fprintf(stdout, "\ttest %s, %s\n", registers[r], registers[r]);
-	fprintf(stdout, "\tsete %s\n", registers[reg8(r)]);
+	fprintf(stdout, "\tsetne %s\n", registers[reg8(r)]);
 	fprintf(stdout, "\tor %s, %s\n", registers[reg8(l)], registers[reg8(r)]);
 	fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
 	freeReg(r);
