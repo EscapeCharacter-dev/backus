@@ -302,6 +302,7 @@ static uint64_t genLogicalAnd(KscTree *node, uint64_t acc, uint64_t condBranchSy
 	fprintf(stdout, "\tsete %s\n", registers[reg8(l)]);
 	fprintf(stdout, "\ttest %s, %s\n", registers[r], registers[r]);
 	fprintf(stdout, "\tsete %s\n", registers[reg8(l)]);
+	fprintf(stdout, "\tand %s, %s\n", registers[reg8(l)], registers[reg8(r)]);
 	fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
 	freeReg(r);
 	return l;
