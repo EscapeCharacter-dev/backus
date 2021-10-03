@@ -288,10 +288,37 @@ static uint64_t genGreaterEqual(KscTree *node, uint64_t acc, uint64_t condBranch
 static uint64_t genLogicalNot(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, uint64_t condBranchSymbol2)
 {
 	uint64_t u = genExpr(node->left, acc, 0, 0);
-	fprintf(stdout, "\tcmp %s, 0\n", registers[u]);
+	fprintf(stdout, "\ttest %s, %s\n", registers[u], registers[u]);
 	fprintf(stdout, "\tsete %s\n", registers[reg8(u)]);
 	fprintf(stdout, "\tmovzx %s, %s\n", registers[u], registers[reg8(u)]);
 	return u;
+}
+
+static uint64_t genLogicalAnd(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, uint64_t condBranchSymbol2)
+{
+	uint64_t l = genExpr(node->left, acc, 0, 0);
+	uint64_t r = genExpr(node->right, NOREG, 0, 0);
+	fprintf(stdout, "\ttest %s, %s\n", registers[l], registers[l]);
+	fprintf(stdout, "\tsete %s\n", registers[reg8(l)]);
+	fprintf(stdout, "\ttest %s, %s\n", registers[r], registers[r]);
+	fprintf(stdout, "\tsete %s\n", registers[reg8(l)]);
+	fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	freeReg(r);
+	return l;
+}
+
+static uint64_t genLogicalOr(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, uint64_t condBranchSymbol2)
+{
+	uint64_t l = genExpr(node->left, acc, 0, 0);
+	uint64_t r = genExpr(node->right, NOREG, 0, 0);
+	fprintf(stdout, "\ttest %s, %s\n", registers[l], registers[l]);
+	fprintf(stdout, "\tsete %s\n", registers[reg8(l)]);
+	fprintf(stdout, "\ttest %s, %s\n", registers[r], registers[r]);
+	fprintf(stdout, "\tsete %s\n", registers[reg8(r)]);
+	fprintf(stdout, "\tor %s, %s\n", registers[reg8(l)], registers[reg8(r)]);
+	fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	freeReg(r);
+	return l;
 }
 
 static uint64_t genExpr(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, uint64_t condBranchSymbol2)
@@ -318,6 +345,8 @@ static uint64_t genExpr(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, 
 	case KSC_TREE_EQUAL: return genEqual(node, acc, condBranchSymbol, condBranchSymbol2);
 	case KSC_TREE_NOT_EQUAL: return genNotEqual(node, acc, condBranchSymbol, condBranchSymbol2);
 	case KSC_TREE_LOGICAL_NOT: return genLogicalNot(node, acc, condBranchSymbol, condBranchSymbol2);
+	case KSC_TREE_LOGICAL_AND: return genLogicalAnd(node, acc, condBranchSymbol, condBranchSymbol2);
+	case KSC_TREE_LOGICAL_OR: return genLogicalOr(node, acc, condBranchSymbol, condBranchSymbol2);
 	}
 }
 

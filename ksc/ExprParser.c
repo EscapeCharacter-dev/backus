@@ -220,7 +220,7 @@ KscTree *KscParseExpr(int oprec)
 	{
 		KscLex(&tok);
 		int op = uopk(tok.kind);
-		left = newUnary(KscParseExpr(op), op, &tok);
+		left = newUnary(KscParseExpr(up), op, &tok);
 	}
 	else
 	{
