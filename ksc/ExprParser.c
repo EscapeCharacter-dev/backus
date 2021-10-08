@@ -42,6 +42,13 @@ static KscTree *newAtom(int kind, KscToken *restrict tok)
 	return t;
 }
 
+void KscFreeTree(KscTree *tree)
+{
+	if (tree->left) KscFreeTree(tree->left);
+	if (tree->right) KscFreeTree(tree->right);
+	free(tree);
+}
+
 static int uopprec(int tok)
 {
 	switch (tok)

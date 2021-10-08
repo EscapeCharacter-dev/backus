@@ -9,5 +9,7 @@ bool_t KscParseType(KscType *type);
 KscTree *KscParseExpr(int oprec);
 // Parses a statement.
 void KscParseStmt(void);
+// Frees a binary tree.
+void KscFreeTree(KscTree *tree);
 
 #endif

@@ -24,7 +24,7 @@ static void parseRet(void)
 	{
 		volatile KscToken *v = KscLexLastGoodTokenPtr();
 		fprintf(stdout, "(%d, %d): expected semicolon after return statement\n", v->line, v->column);
-		free(tree); // prevent memory leaks
+		KscFreeTree(tree); // prevent memory leaks
 		return;
 	}
 	KscLex(&tok);
@@ -53,7 +53,7 @@ static void parseIfStmt(void)
 	{
 		volatile KscToken *v = KscLexLastGoodTokenPtr();
 		fprintf(stdout, "(%d, %d): expected closing bracket after expression in if statement, got %d\n", v->line, v->column, tok.kind);
-		free(tree); // prevent memory leaks
+		KscFreeTree(tree); // prevent memory leaks
 		return;
 	}
 	KscLex(&tok);
@@ -73,7 +73,7 @@ static void parseIfStmt(void)
 	}
 	KscPrintLabel(c);
 	KscGenExpr(tree, NOREG, l0, l1);
-	free(tree);
+	KscFreeTree(tree);
 }
 
 static void parseWhileStmt(void)
@@ -97,7 +97,7 @@ static void parseWhileStmt(void)
 	{
 		volatile KscToken *v = KscLexLastGoodTokenPtr();
 		fprintf(stdout, "(%d, %d): expected closing bracket after expression in while statement, got %d\n", v->line, v->column, tok.kind);
-		free(tree); // prevent memory leaks
+		KscFreeTree(tree); // prevent memory leaks
 		return;
 	}
 	KscLex(&tok);
@@ -106,6 +106,7 @@ static void parseWhileStmt(void)
 	uint64_t lLead = KscGenLabel();
 	KscPrintLabel(lCondition);
 	KscGenExpr(tree, NOREG, lChildStmt, lLead);
+	KscFreeTree(tree);
 	KscPrintLabel(lChildStmt);
 	KscParseStmt();
 	KscJump(lCondition);
@@ -158,7 +159,7 @@ void KscParseStmt(void)
 		{
 			KscTree *tree = KscParseExpr(0);
 			KscGenExpr(tree, NOREG, 0, 0);
-			free(tree);
+			KscFreeTree(tree);
 			tok.kind = 0xFF;
 			KscLexPeek(&tok);
 			if (tok.kind != ';')
