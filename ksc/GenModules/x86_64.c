@@ -400,13 +400,16 @@ condBranchSymbolResolve:
 	}
 }
 
+static uint64_t labels = 1;
+
 void genInit(void)
 {
 	freeAllRegs();
+	labels = 1;
 }
 
+static void genWhileIteration(uint64_t l) { fprintf(stdout, "\tjmp .L%ld\n", l); }
 static void genRet(void){ fprintf(stdout, "\tret\n"); }
-static uint64_t labels = 1;
 static uint64_t genLabel(void) { return labels++; }
 static void printLabel(uint64_t l) { fprintf(stdout, ".L%ld:\n", l); }
 
@@ -417,5 +420,6 @@ KscIGenMod x86_64gm =
 	.genInit = genInit,
 	.genLabel = genLabel,
 	.printLabel = printLabel,
+	.genWhileIteration = genWhileIteration,
 	.returnAccumulator = NOREG,
 };
