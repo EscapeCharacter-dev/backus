@@ -37,7 +37,7 @@ void KscPrintLabel(uint64_t l)
 	mod->printLabel(l);
 }
 
-void KscGenWhileIteration(uint64_t lIteration)
+void KscJump(uint64_t lIteration)
 {
-	mod->genWhileIteration(lIteration);
+	mod->genJump(lIteration);
 }

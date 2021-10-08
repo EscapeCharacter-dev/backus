@@ -58,18 +58,22 @@ static void parseIfStmt(void)
 	}
 	KscLex(&tok);
 	uint64_t l0 = KscGenLabel();
-	uint64_t l1 = KscGenLabel();
-	KscGenExpr(tree, NOREG, l0, l1);
-	free(tree);
+	uint64_t c = KscGenLabel();
+	KscJump(c);
 	KscPrintLabel(l0);
 	KscParseStmt();
 	KscLexPeek(&tok);
+	uint64_t l1 = 0;
 	if (tok.kind == KSC_KEYWORD_ELSE)
 	{
 		KscLex(&tok);
 		KscPrintLabel(l1);
 		KscParseStmt();
+		l1 = KscGenLabel();
 	}
+	KscPrintLabel(c);
+	KscGenExpr(tree, NOREG, l0, l1);
+	free(tree);
 }
 
 static void parseWhileStmt(void)
@@ -104,7 +108,7 @@ static void parseWhileStmt(void)
 	KscGenExpr(tree, NOREG, lChildStmt, lLead);
 	KscPrintLabel(lChildStmt);
 	KscParseStmt();
-	KscGenWhileIteration(lCondition);
+	KscJump(lCondition);
 	KscPrintLabel(lLead);
 }
 
