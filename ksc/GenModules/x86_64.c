@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define NOREG 0xFF
-
 static const char *registers[] =
 {
 	"rax", "eax",  "ax",   "al",
@@ -103,7 +101,7 @@ static void freeAllRegs(void)
 
 static uint64_t genILiteral(KscTree *node, uint64_t acc)
 {
-	uint64_t r = acc != NOREG ? acc : regAlloc_64();
+	uint64_t r = acc;
 	fprintf(stdout, "\tmov %s, %ld\n", registers[r], *(int64_t *)node->token.data);
 	return r;
 }
@@ -298,12 +296,36 @@ static uint64_t genLogicalAnd(KscTree *node, uint64_t acc, uint64_t condBranchSy
 {
 	uint64_t l = genExpr(node->left, acc, 0, 0);
 	uint64_t r = genExpr(node->right, NOREG, 0, 0);
-	fprintf(stdout, "\ttest %s, %s\n", registers[l], registers[l]);
-	fprintf(stdout, "\tsetne %s\n", registers[reg8(l)]);
-	fprintf(stdout, "\ttest %s, %s\n", registers[r], registers[r]);
-	fprintf(stdout, "\tsetne %s\n", registers[reg8(r)]);
-	fprintf(stdout, "\tand %s, %s\n", registers[reg8(l)], registers[reg8(r)]);
-	fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	if (condBranchSymbol)
+	{
+		if (condBranchSymbol2)
+		{
+			fprintf(stdout, "\ttest %s, %s\n", registers[l], registers[l]);
+			fprintf(stdout, "\tje .L%ld\n", condBranchSymbol2);
+			fprintf(stdout, "\ttest %s, %s\n", registers[r], registers[r]);
+			fprintf(stdout, "\tje .L%ld\n", condBranchSymbol2);
+			fprintf(stdout, "\tjmp .L%ld\n", condBranchSymbol);
+		}
+		else
+		{
+			uint64_t v = KscGenLabel();
+			fprintf(stdout, "\ttest %s, %s\n", registers[l], registers[l]);
+			fprintf(stdout, "\tje .L%ld\n", v);
+			fprintf(stdout, "\ttest %s, %s\n", registers[r], registers[r]);
+			fprintf(stdout, "\tje .L%ld\n", v);
+			fprintf(stdout, "\tjmp .L%ld\n", condBranchSymbol);
+			KscPrintLabel(v);
+		}
+	}
+	else
+	{
+		fprintf(stdout, "\ttest %s, %s\n", registers[l], registers[l]);
+		fprintf(stdout, "\tsetne %s\n", registers[reg8(l)]);
+		fprintf(stdout, "\ttest %s, %s\n", registers[r], registers[r]);
+		fprintf(stdout, "\tsetne %s\n", registers[reg8(r)]);
+		fprintf(stdout, "\tand %s, %s\n", registers[reg8(l)], registers[reg8(r)]);
+		fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	}
 	freeReg(r);
 	return l;
 }
@@ -312,33 +334,60 @@ static uint64_t genLogicalOr(KscTree *node, uint64_t acc, uint64_t condBranchSym
 {
 	uint64_t l = genExpr(node->left, acc, 0, 0);
 	uint64_t r = genExpr(node->right, NOREG, 0, 0);
-	fprintf(stdout, "\ttest %s, %s\n", registers[l], registers[l]);
-	fprintf(stdout, "\tsetne %s\n", registers[reg8(l)]);
-	fprintf(stdout, "\ttest %s, %s\n", registers[r], registers[r]);
-	fprintf(stdout, "\tsetne %s\n", registers[reg8(r)]);
-	fprintf(stdout, "\tor %s, %s\n", registers[reg8(l)], registers[reg8(r)]);
-	fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	if (condBranchSymbol)
+	{
+		fprintf(stdout, "\ttest %s, %s\n", registers[l], registers[l]);
+		fprintf(stdout, "\tjne .L%ld\n", condBranchSymbol);
+		fprintf(stdout, "\ttest %s, %s\n", registers[r], registers[r]);
+		fprintf(stdout, "\tjne .L%ld\n", condBranchSymbol);
+		if (condBranchSymbol2)
+		{
+			fprintf(stdout, "\tjmp .L%ld\n", condBranchSymbol2);
+		}
+	}
+	else
+	{
+		fprintf(stdout, "\ttest %s, %s\n", registers[l], registers[l]);
+		fprintf(stdout, "\tsetne %s\n", registers[reg8(l)]);
+		fprintf(stdout, "\ttest %s, %s\n", registers[r], registers[r]);
+		fprintf(stdout, "\tsetne %s\n", registers[reg8(r)]);
+		fprintf(stdout, "\tor %s, %s\n", registers[reg8(l)], registers[reg8(r)]);
+		fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	}
 	freeReg(r);
 	return l;
 }
 
 static uint64_t genExpr(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, uint64_t condBranchSymbol2)
 {
+	if (acc == NOREG) acc = regAlloc_64();
+	uint64_t ret = 0;
 	switch (node->kind)
 	{
-	case KSC_TREE_LITERAL_INTEGER: return genILiteral(node, acc);
-	case KSC_TREE_ADD: return genIAdd(node, acc);
-	case KSC_TREE_SUB: return genISub(node, acc);
-	case KSC_TREE_MUL: return genIMul(node, acc);
-	case KSC_TREE_DIV: return genIDiv(node, acc);
-	case KSC_TREE_MOD: return genMod(node, acc);
-	case KSC_TREE_LSHIFT: return genLsh(node, acc);
-	case KSC_TREE_RSHIFT: return genRsh(node, acc);
-	case KSC_TREE_BITWISE_AND: return genBitwiseAnd(node, acc);
-	case KSC_TREE_BITWISE_XOR: return genBitwiseXor(node, acc);
-	case KSC_TREE_BITWISE_OR: return genBitwiseOr(node, acc);
-	case KSC_TREE_BITWISE_NOT: return genBitwiseNot(node, acc);
-	case KSC_TREE_NEGATE: return genNegate(node, acc);
+	case KSC_TREE_LITERAL_INTEGER: ret = genILiteral(node, acc); goto condBranchSymbolResolve;
+	case KSC_TREE_ADD: ret = genIAdd(node, acc); goto condBranchSymbolResolve;
+	case KSC_TREE_SUB: ret = genISub(node, acc); goto condBranchSymbolResolve;
+	case KSC_TREE_MUL: ret = genIMul(node, acc); goto condBranchSymbolResolve;
+	case KSC_TREE_DIV: ret = genIDiv(node, acc); goto condBranchSymbolResolve;
+	case KSC_TREE_MOD: ret = genMod(node, acc); goto condBranchSymbolResolve;
+	case KSC_TREE_LSHIFT: ret = genLsh(node, acc); goto condBranchSymbolResolve;
+	case KSC_TREE_RSHIFT: ret = genRsh(node, acc); goto condBranchSymbolResolve;
+	case KSC_TREE_BITWISE_AND: ret = genBitwiseAnd(node, acc); goto condBranchSymbolResolve;
+	case KSC_TREE_BITWISE_XOR: ret = genBitwiseXor(node, acc); goto condBranchSymbolResolve;
+	case KSC_TREE_BITWISE_OR: ret = genBitwiseOr(node, acc); goto condBranchSymbolResolve;
+	case KSC_TREE_BITWISE_NOT: ret = genBitwiseNot(node, acc); goto condBranchSymbolResolve;
+	case KSC_TREE_NEGATE: ret = genNegate(node, acc); goto condBranchSymbolResolve;
+condBranchSymbolResolve:
+		if (condBranchSymbol)
+		{
+			fprintf(stdout, "\ttest %s, %s\n", registers[acc], registers[acc]);
+			fprintf(stdout, "\tjne .L%ld\n", condBranchSymbol);
+			if (condBranchSymbol2)
+			{
+				fprintf(stdout, "\tjmp .L%ld\n", condBranchSymbol2);
+			}
+		}
+		return ret;
 	case KSC_TREE_LOWER: return genLower(node, acc, condBranchSymbol, condBranchSymbol2);
 	case KSC_TREE_LOWER_EQUAL: return genLowerEqual(node, acc, condBranchSymbol, condBranchSymbol2);
 	case KSC_TREE_GREATER: return genGreater(node, acc, condBranchSymbol, condBranchSymbol2);
@@ -357,11 +406,16 @@ void genInit(void)
 }
 
 static void genRet(void){ fprintf(stdout, "\tret\n"); }
+static uint64_t labels = 1;
+static uint64_t genLabel(void) { return labels++; }
+static void printLabel(uint64_t l) { fprintf(stdout, ".L%ld:\n", l); }
 
 KscIGenMod x86_64gm =
 {
 	.genExpression = genExpr,
 	.genReturn = genRet,
 	.genInit = genInit,
+	.genLabel = genLabel,
+	.printLabel = printLabel,
 	.returnAccumulator = NOREG,
 };

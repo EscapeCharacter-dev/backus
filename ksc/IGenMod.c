@@ -7,7 +7,7 @@ void KscSelectGenerator(const KscIGenMod *const module)
 	mod = module;
 }
 
-uint64_t KscGenExpr(KscTree *tree, uint64_t accumulator, int64_t condBranch, int64_t elseCondBranch)
+uint64_t KscGenExpr(KscTree *tree, uint64_t accumulator, uint64_t condBranch, uint64_t elseCondBranch)
 {
 	mod->genExpression(tree, accumulator, condBranch, elseCondBranch);
 }
@@ -25,4 +25,14 @@ void KscGenInit(void)
 void KscGenReturn(void)
 {
 	mod->genReturn();
+}
+
+uint64_t KscGenLabel(void)
+{
+	return mod->genLabel();
+}
+
+void KscPrintLabel(uint64_t l)
+{
+	mod->printLabel(l);
 }
