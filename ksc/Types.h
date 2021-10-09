@@ -32,7 +32,7 @@ typedef struct KscType
 	int kind;									 // Kind
 	uint8_t attributes;				 // Attribute bit field
 	void *data;								 // Additional data
-	struct KscType *childType; // Sub type WARNING: IF USING VOODOO MAGIC IN TYPEPARSER.C MAKE THIS LAST FIELD OF THE STRUCT
+	struct KscType *childType; // Sub type
 } KscType;
 
 // Constant attribute value
@@ -51,6 +51,7 @@ typedef struct KscTree
 	struct KscTree *right; // Right tree node
 	uint32_t kind;				 // Binary tree kind
 	KscToken token;				 // Tree node
+	KscType *type;				 // The type of the expression
 } KscTree;
 
 #endif

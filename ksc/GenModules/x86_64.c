@@ -1,5 +1,6 @@
 #include "../IGenMod.h"
 #include "../NodeKinds.h"
+#include "../TypeKinds.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -360,7 +361,31 @@ static uint64_t genLogicalOr(KscTree *node, uint64_t acc, uint64_t condBranchSym
 
 static uint64_t genExpr(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, uint64_t condBranchSymbol2)
 {
-	if (acc == NOREG) acc = regAlloc_64();
+	if (acc == NOREG)
+	{
+		switch (node->type->kind)
+		{
+		case KSC_TYPE_BYTE:
+		case KSC_TYPE_SBYTE:
+			acc = regAlloc_8();
+			break;
+		case KSC_TYPE_SHORT:
+		case KSC_TYPE_USHORT:
+			acc = regAlloc_16();
+			break;
+		case KSC_TYPE_INT:
+		case KSC_TYPE_UINT:
+			acc = regAlloc_32();
+			break;
+		case KSC_TYPE_LONG:
+		case KSC_TYPE_ULONG:
+			acc = regAlloc_64();
+			break;
+		default:
+			fprintf(stdout, "(%d, %d): type %d cannot be used in expression\n", node->token.line, node->token.column, node->type->kind);
+			return 0;
+		}
+	}
 	uint64_t ret = 0;
 	switch (node->kind)
 	{

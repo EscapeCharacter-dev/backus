@@ -2,6 +2,7 @@
 #include "Parser.h"
 #include "Tokens.h"
 #include "NodeKinds.h"
+#include "TypeKinds.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -15,6 +16,9 @@ static KscTree *newUnary(KscTree *child, int kind, KscToken *restrict tok)
 	t->right = NULL;
 	t->kind = kind;
 	memcpy(&t->token, tok, sizeof(KscToken));
+	t->type = malloc(sizeof(KscType));
+	memset(t->type, 0, sizeof(KscType));
+	memcpy(t->type, child->type, sizeof(KscType));
 	return t;
 }
 
@@ -27,6 +31,14 @@ static KscTree *newBinary(KscTree *left, KscTree *right, int kind, KscToken *res
 	t->right = right;
 	t->kind = kind;
 	memcpy(&t->token, tok, sizeof(KscToken));
+	t->type = malloc(sizeof(KscType));
+	memset(t->type, 0, sizeof(KscType));
+	memcpy(t->type, left->type, sizeof(KscType));
+	if (left->type->kind != right->type->kind)
+	{
+		fprintf(stdout, "(%d, %d): left and right types do not match\n", tok->line, tok->column);
+		return NULL;
+	}
 	return t;
 }
 
@@ -188,26 +200,58 @@ static KscTree *pPrimary(void)
 		return NULL;
 	}
 
+	KscTree *tree;
 	switch (tok.kind)
 	{
 	case KSC_TOKEN_LINT:
-		return newAtom(KSC_TREE_LITERAL_INTEGER, &tok);
+		tree = newAtom(KSC_TREE_LITERAL_INTEGER, &tok);
+		tree->type = calloc(1, sizeof(KscType));
+		tree->type->kind = KSC_TYPE_INT;
+		return tree;
 	case KSC_TOKEN_LFLOAT:
-		return newAtom(KSC_TREE_LITERAL_FLOAT, &tok);
+		tree = newAtom(KSC_TREE_LITERAL_FLOAT, &tok);
+		tree->type = calloc(1, sizeof(KscType));
+		tree->type->kind = KSC_TYPE_FLOAT;
+		return tree;
 	case KSC_TOKEN_LSTRING:
-		return newAtom(KSC_TREE_LITERAL_STRING, &tok);
+		tree = newAtom(KSC_TREE_LITERAL_STRING, &tok);
+		tree->type = calloc(1, sizeof(KscType));
+		tree->type->kind = KSC_TYPE_POINTER;
+		tree->type->childType = calloc(1, sizeof(KscType));
+		tree->type->childType->kind = KSC_TYPE_SBYTE;
+		tree->type->childType->attributes |= KSC_TYPE_ATTRIBUTE_CONST;
+		return tree;
 	case KSC_IDENT:
-		return newAtom(KSC_TREE_IDENTIFIER, &tok);
+		tree = newAtom(KSC_TREE_IDENTIFIER, &tok);
+		return tree;
 	case '(':
 	{
-		KscTree *tree = KscParseExpr(0);
-		if (!KscLex(&tok))
+		tok.kind = 0xFF;
+		KscLexPeek(&tok);
+		KscType type;
+		memset(&type, 0, sizeof(KscType));
+		if (KscParseType(&type))
+		{
+			KscLexPeek(&tok);
+			if (tok.kind != ')')
+			{
+				fprintf(stderr, "(%d, %d): expected closing parenthesis\n", tok.line, tok.column);
+				return NULL;
+			}
+			KscLex(&tok);
+			KscTree *tree = KscParseExpr(11);
+			tree->type = malloc(sizeof(KscType));
+			memcpy(tree->type, &type, sizeof(KscType));
 			return tree;
+		}
+		KscTree *tree = KscParseExpr(0);
+		KscLexPeek(&tok);
 		if (tok.kind != ')')
 		{
 			fprintf(stderr, "(%d, %d): expected closing parenthesis\n", tok.line, tok.column);
 			return NULL;
 		}
+		KscLex(&tok);
 		return tree;
 	}
 	}
@@ -227,7 +271,26 @@ KscTree *KscParseExpr(int oprec)
 	{
 		KscLex(&tok);
 		int op = uopk(tok.kind);
-		left = newUnary(KscParseExpr(up), op, &tok);
+		KscTree *tree = KscParseExpr(up);
+		left = newUnary(tree, op, &tok);
+		if (op == KSC_TREE_DEREFERENCE)
+		{
+			if (tree->type->kind != KSC_TYPE_POINTER)
+			{
+				fprintf(stdout, "(%d, %d): pointer type is required for dereference­\n", tok.line, tok.column);
+				return NULL;
+			}
+			left->type = malloc(sizeof(KscType));
+			memcpy(left->type, tree->type->childType, sizeof(KscType));
+		}
+		else if (op == KSC_TREE_ADDRESSOF)
+		{
+			left->type = malloc(sizeof(KscType));
+			left->type->childType = malloc(sizeof(KscType));
+			memcpy(left->type->childType, tree->type, sizeof(KscType));
+			left->type->kind = KSC_TYPE_POINTER;
+		}
+		return left;
 	}
 	else
 	{

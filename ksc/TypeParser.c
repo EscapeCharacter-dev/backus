@@ -61,7 +61,7 @@ bool_t KscParseType(KscType *type)
 {
 	KscToken tok;
 	type->attributes = parseAttributes();
-	KscLex(&tok);
+	KscLexPeek(&tok);
 	switch (tok.kind)
 	{
 	case KSC_KEYWORD_CHAR:
@@ -101,9 +101,9 @@ bool_t KscParseType(KscType *type)
 		type->kind = KSC_TYPE_VOID;
 		break;
 	default:
-		fprintf(stderr, "(%d, %d): invalid type\n", tok.line, tok.column);
 		return 0;
 	}
+	KscLex(&tok);
 	KscLexPeek(&tok);
 	while (tok.kind == '*' || tok.kind == '&' || tok.kind == '[')
 	{
