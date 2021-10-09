@@ -59,21 +59,25 @@ static void parseIfStmt(void)
 	KscLex(&tok);
 	uint64_t l0 = KscGenLabel();
 	uint64_t c = KscGenLabel();
+	uint64_t lead = KscGenLabel();
 	KscJump(c);
 	KscPrintLabel(l0);
 	KscParseStmt();
+	KscJump(lead);
 	KscLexPeek(&tok);
 	uint64_t l1 = 0;
 	if (tok.kind == KSC_KEYWORD_ELSE)
 	{
 		KscLex(&tok);
+		l1 = KscGenLabel();
 		KscPrintLabel(l1);
 		KscParseStmt();
-		l1 = KscGenLabel();
+		KscJump(lead);
 	}
 	KscPrintLabel(c);
 	KscGenExpr(tree, NOREG, l0, l1);
 	KscFreeTree(tree);
+	KscPrintLabel(lead);
 }
 
 static void parseWhileStmt(void)
@@ -136,6 +140,7 @@ static void parseBlkStmt(void)
 		fprintf(stdout, "(%d, %d): non-terminated block\n", tok.line, tok.column);
 		return;
 	}
+	KscLex(&tok);
 }
 
 void KscParseStmt(void)
