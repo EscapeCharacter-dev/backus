@@ -379,6 +379,7 @@ static uint64_t genExpr(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, 
 			break;
 		case KSC_TYPE_LONG:
 		case KSC_TYPE_ULONG:
+		case KSC_TYPE_POINTER:
 			acc = regAlloc_64();
 			break;
 		default:
