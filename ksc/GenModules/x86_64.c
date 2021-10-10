@@ -7,7 +7,7 @@
 
 static bool_t isIntegerType(int typeKind)
 {
-	return typeKind >= KSC_TYPE_SBYTE && typeKind <= KSC_TYPE_ULONG;
+	return typeKind >= KSC_TYPE_SBYTE && typeKind <= KSC_TYPE_ULONG || typeKind == KSC_TYPE_POINTER;
 }
 
 static const char *registers[] =
@@ -402,7 +402,8 @@ static uint64_t genExpr(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, 
 			ret = genExpr(node->left, NOREG, 0, 0);
 			if (node->type->kind == node->left->type->kind)
 				goto condBranchSymbolResolve;
-			if (node->type->kind < node->left->type->kind)
+			if (node->type->kind == KSC_TYPE_POINTER) acc = reg64(ret);
+			else if (node->type->kind < node->left->type->kind)
 			{
 				switch (node->type->kind)
 				{

@@ -143,6 +143,13 @@ static void parseBlkStmt(void)
 	KscLex(&tok);
 }
 
+static void parseDecl(void)
+{
+	KscType type;
+	KscParseType(&type);
+	
+}
+
 void KscParseStmt(void)
 {
 	KscToken tok;

@@ -10,7 +10,20 @@
 
 static bool_t isIntegerType(int typeKind)
 {
-	return typeKind >= KSC_TYPE_SBYTE && typeKind <= KSC_TYPE_ULONG;
+	return typeKind == KSC_TYPE_SBYTE  ||
+	       typeKind == KSC_TYPE_BYTE   ||
+				 typeKind == KSC_TYPE_SHORT  ||
+				 typeKind == KSC_TYPE_USHORT ||
+				 typeKind == KSC_TYPE_INT    ||
+				 typeKind == KSC_TYPE_UINT   ||
+				 typeKind == KSC_TYPE_LONG   ||
+				 typeKind == KSC_TYPE_ULONG  ||
+				 typeKind == KSC_TYPE_POINTER;
+}
+
+static bool_t isFloatingType(int typeKind)
+{
+	return typeKind == KSC_TYPE_HALF || typeKind == KSC_TYPE_FLOAT || typeKind == KSC_TYPE_DOUBLE;
 }
 
 // unary node constructor
