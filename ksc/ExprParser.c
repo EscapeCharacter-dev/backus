@@ -6,6 +6,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
+
+static bool_t isIntegerType(int typeKind)
+{
+	return typeKind >= KSC_TYPE_SBYTE && typeKind <= KSC_TYPE_ULONG;
+}
 
 // unary node constructor
 static KscTree *newUnary(KscTree *child, int kind, KscToken *restrict tok)
@@ -34,12 +40,17 @@ static KscTree *newBinary(KscTree *left, KscTree *right, int kind, KscToken *res
 	t->type = malloc(sizeof(KscType));
 	memset(t->type, 0, sizeof(KscType));
 	memcpy(t->type, left->type, sizeof(KscType));
-	if (left->type->kind != right->type->kind)
+	if (left->type->kind != right->type->kind && !(isIntegerType(left->type->kind) && isIntegerType(right->type->kind)))
 	{
 		fprintf(stdout, "(%d, %d): left and right types do not match\n", tok->line, tok->column);
 		return NULL;
 	}
 	return t;
+}
+
+static int imax(int x, int y)
+{
+	return x + ((y - x) & (x - y >> 31));
 }
 
 // childless node constructor
@@ -240,6 +251,7 @@ static KscTree *pPrimary(void)
 			}
 			KscLex(&tok);
 			KscTree *tree = KscParseExpr(11);
+			tree = newUnary(tree, KSC_TREE_CAST, &tok);
 			tree->type = malloc(sizeof(KscType));
 			memcpy(tree->type, &type, sizeof(KscType));
 			return tree;
@@ -310,6 +322,17 @@ KscTree *KscParseExpr(int oprec)
 		KscLex(&tok);
 		int op = bopk(tok.kind);
 		right = KscParseExpr(bprec);
+		int resultTypeKind = imax(left->type->kind, right->type->kind);
+		if (left->type->kind != resultTypeKind)
+		{
+			left = newUnary(left, KSC_TREE_CAST, &tok);
+			left->type->kind = resultTypeKind;
+		}
+		else if (right->type->kind != resultTypeKind)
+		{
+			right = newUnary(right, KSC_TREE_CAST, &tok);
+			right->type->kind = resultTypeKind;
+		}
 		left = newBinary(left, right, op, &tok);
 	}
 

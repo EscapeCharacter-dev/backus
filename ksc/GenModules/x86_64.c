@@ -3,6 +3,12 @@
 #include "../TypeKinds.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
+static bool_t isIntegerType(int typeKind)
+{
+	return typeKind >= KSC_TYPE_SBYTE && typeKind <= KSC_TYPE_ULONG;
+}
 
 static const char *registers[] =
 {
@@ -390,6 +396,39 @@ static uint64_t genExpr(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, 
 	uint64_t ret = 0;
 	switch (node->kind)
 	{
+	case KSC_TREE_CAST:
+		if (isIntegerType(node->type->kind))
+		{
+			ret = genExpr(node->left, NOREG, 0, 0);
+			if (node->type->kind == node->left->type->kind)
+				goto condBranchSymbolResolve;
+			if (node->type->kind < node->left->type->kind)
+			{
+				switch (node->type->kind)
+				{
+				case KSC_TYPE_SBYTE: case KSC_TYPE_BYTE: acc = reg8(ret); break;
+				case KSC_TYPE_SHORT: case KSC_TYPE_USHORT: acc = reg16(ret); break;
+				case KSC_TYPE_INT: case KSC_TYPE_UINT: acc = reg32(ret); break;
+				default: abort();
+				}
+				ret = acc;
+				goto condBranchSymbolResolve;
+			}
+			else
+			{
+				switch (node->type->kind)
+				{
+				case KSC_TYPE_SBYTE: case KSC_TYPE_BYTE: acc = reg8(ret); break;
+				case KSC_TYPE_SHORT: case KSC_TYPE_USHORT: acc = reg16(ret); break;
+				case KSC_TYPE_INT: case KSC_TYPE_UINT: acc = reg32(ret); break;
+				case KSC_TYPE_LONG: case KSC_TYPE_ULONG: acc = reg64(ret); break;
+				default: fprintf(stdout, "invalid type %d\n", node->type->kind); abort();
+				}
+				fprintf(stdout, "\tmovsx %s, %s\n", registers[acc], registers[ret]);
+				ret = acc;
+				goto condBranchSymbolResolve;
+			}
+		}
 	case KSC_TREE_LITERAL_INTEGER: ret = genILiteral(node, acc); goto condBranchSymbolResolve;
 	case KSC_TREE_ADD: ret = genIAdd(node, acc); goto condBranchSymbolResolve;
 	case KSC_TREE_SUB: ret = genISub(node, acc); goto condBranchSymbolResolve;
