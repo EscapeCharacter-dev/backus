@@ -1,0 +1,101 @@
+Standard library modules
+	io      File I/O, streams, console, etc.
+		+ Functions:
+			- size swrite(Stream &s, const char *cstr);            Writes a string to a stream
+			- size swritef(Stream &s, const char *format, ...);    Writes a formatted string to a stream
+			- size swriteln(Stream &s, const char *cstr);          Writes a string to a stream, followed by \n
+			- size swritefln(Stream &s, const char *format, ...);  Writes a formatted string to a stream, followed by \n
+			- size sread(Stream &s, size count, char *buffer);     Reads data from a stream into a buffer
+			- size sreadln(Stream &s, size max, char *buffer);     Reads a line (data until \n) from a stream into a buffer
+			- size sreada(Stream &s, size max, char *buffer);      Reads all a stream's contents into a buffer
+			- size swriteb(Stream &s, byte *from, size count);     Writes raw bytes to a stream from a buffer
+			- size sreadb(Stream &s, byte *to, size count);        Reads raw bytes from a stream into a buffer
+			- void sclose(Stream &s);                              Closes a stream
+			- void print(const char *cstr);                        swrite with console stream
+			- void printf(const char *format, ...);                swritef with console stream
+			- void println(const char *cstr);                      swriteln with console stream
+			- void printfln(const char *format, ...);              swritefln with console stream
+			- size read(size count, char *buffer);                 sread with console stream
+			- size readln(size max, char *buffer);                 sreadln with console stream
+			- bool fopen(Stream &stream, const char *f, int mode); opens a file
+			- void fcopy(Stream &dest, Stream &source);            copies a file's contents into another
+			- bool dopen(Directory &dir, const char *f);           opens a directory
+			- void dclose(Directory &dir);                         closes a directory
+			- char *fsearch(Directory *dir, const char *file, bool rec); searches for a file in a directory
+			- Stream *getCon();                                    gets the console stream
+		+ Types:
+			- Stream (structure, undefined implementation)         represents an I/O stream
+			- Directory                                            represents a directory
+
+	mem     Memory management
+		+ Functions:
+			- void *malloc(size nbytes);                           allocates memory on the heap
+			- void free(void *block);                              frees a block on the heap
+			- void *zalloc(size nbytes);                           malloc, but memory is zero'd
+			- void *relocate(void *block);                         relocates a block
+			- void *realloc(void *block);                          reallocates a block (resize)
+			- void pack();                                         reorders the heap blocks to be more efficient and packed
+			- MemBlock *gblock(void *bptr);                        gets a memory block pointer
+			- void freeblock(MemBlock *block);                     frees a block on the heap (faster than free())
+			- void relocateblock(MemBlock *block);                 relocates a block
+			- void reallocblock(MemBlock *block);                  reallocates a block
+		+ Types:
+			- MemBlock (structure, represents a memory block)
+				* void *pBase;                                       base pointer
+				* size pSize;                                        size of block
+				* MemBlock *pNextBlock;                              next block (linked list)
+	err     Error management & exceptions        partial freestanding
+	  -- REQUIRES arch
+		+ Functions:
+			- void assert(bool assertion, const char *error);      asserts a condition
+			- void abort();                                        aborts the program
+		+ Types:
+		  - Exception (structure, represents an exception)
+				* const char *message;                               exception message
+				* int error;                                         error id
+				* XState *state;                                     machine state when thrown
+	time    Time/locale
+		+ Functions:
+			- void ctime(LocalizedTime &result);                   current time (localefree)
+			- void clocale(Locale &locale);                        current locale
+			- void slocale(Locale &locale, const char *locname);   gets a locale by name
+			- void localize(LocalizedTime &to, Locale &l, Time &t); applies a locale to a time
+			- void universalt(Time &to, LocalizedTime &from);      applies a UTC locale to a time, casts back to Time
+			- void cldate(LocalizedDate &result, Locale &l);       gets the current date (with locale);
+			- void universald(Date &to, LocalizedDate &from);      applies a UTC locale to a date, casts back to Date
+			- Epoch cepoch();                                      get current epoch
+			- void cdatetime(DateTime &dt);                        gets current date & time
+			- void cldatetime(LocalizedDateTime &dt);              gets current localized date time
+			- void datetimeEpoch(DateTime &to, Epoch epoch);       converts an epoch to a datetime
+			- Epoch epoch(DateTime &dt);                           gets epoch from DateTime
+		+ Types:
+			- Time (structure)
+				* short millisecond;                                 millisecond
+				* byte second;                                       second
+				* byte minute;                                       minute
+				* byte hour;                                         hour
+			- LocalizedTime (structure)
+				* Locale *locale;                                    locale
+				* Time *time;                                        time to localize
+			- Date (typedef of ulong)
+			- LocalizedDate (structure)
+				* Locale *locale;                                    locale
+				* Date *date;                                        date to localize
+			- Epoch (typedef of ulong)
+			- DateTime (structure)
+				* Date *date;                                        date
+				* Time *time;                                        time
+			- LocalizedTime (structure)
+			  * LocalizedDate *date;                               localized time
+				* LocalizedTime *time;                               localized date
+	thread  Multithreading
+	prog    Program management
+	debug   Debugger library                     (can be) Freestanding
+	clib    Compiler/implementation library	     (can be) Freestanding
+	math    Math intrinsics/additional functions Freestanding
+	string  String manipulation & String type    Freestanding
+	algo    Common algorithms                    Freestanding
+	arch    Architecture intrinsics              Freestanding
+		+ Types:
+			- (required) XState (structure, impl defined, represents a machine state)
+	memf    Freestanding memory management       Freestanding
