@@ -229,8 +229,19 @@ static uint64_t genEqual(KscTree *node, uint64_t acc, uint64_t condBranchSymbol,
 	uint64_t l = genExpr(node->left, acc, 0, 0);
 	uint64_t r = genExpr(node->right, NOREG, 0, 0);
 	fprintf(stdout, "\tcmp %s, %s\n", registers[l], registers[r]);
-	fprintf(stdout, "\tsete %s\n", registers[reg8(l)]);
-	fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	if (condBranchSymbol)
+	{
+		fprintf(stdout, "\tje .L%ld\n", condBranchSymbol);
+		if (condBranchSymbol2)
+		{
+			fprintf(stdout, "\tjmp .L%ld\n", condBranchSymbol2);
+		}
+	}
+	else
+	{
+		fprintf(stdout, "\tsete %s\n", registers[reg8(l)]);
+		fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	}
 	freeReg(r);
 	return l;
 }
@@ -240,8 +251,19 @@ static uint64_t genNotEqual(KscTree *node, uint64_t acc, uint64_t condBranchSymb
 	uint64_t l = genExpr(node->left, acc, 0, 0);
 	uint64_t r = genExpr(node->right, NOREG, 0, 0);
 	fprintf(stdout, "\tcmp %s, %s\n", registers[l], registers[r]);
-	fprintf(stdout, "\tsetne %s\n", registers[reg8(l)]);
-	fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	if (condBranchSymbol)
+	{
+		fprintf(stdout, "\tjne .L%ld\n", condBranchSymbol);
+		if (condBranchSymbol2)
+		{
+			fprintf(stdout, "\tjmp .L%ld\n", condBranchSymbol2);
+		}
+	}
+	else
+	{
+		fprintf(stdout, "\tsetne %s\n", registers[reg8(l)]);
+		fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	}
 	freeReg(r);
 	return l;
 }
@@ -251,8 +273,19 @@ static uint64_t genLower(KscTree *node, uint64_t acc, uint64_t condBranchSymbol,
 	uint64_t l = genExpr(node->left, acc, 0, 0);
 	uint64_t r = genExpr(node->right, NOREG, 0, 0);
 	fprintf(stdout, "\tcmp %s, %s\n", registers[l], registers[r]);
-	fprintf(stdout, "\tsetl %s\n", registers[reg8(l)]);
-	fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	if (condBranchSymbol)
+	{
+		fprintf(stdout, "\tjl .L%ld\n", condBranchSymbol);
+		if (condBranchSymbol2)
+		{
+			fprintf(stdout, "\tjmp .L%ld\n", condBranchSymbol2);
+		}
+	}
+	else
+	{
+		fprintf(stdout, "\tsetl %s\n", registers[reg8(l)]);
+		fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	}
 	freeReg(r);
 	return l;
 }
@@ -262,8 +295,19 @@ static uint64_t genGreater(KscTree *node, uint64_t acc, uint64_t condBranchSymbo
 	uint64_t l = genExpr(node->left, acc, 0, 0);
 	uint64_t r = genExpr(node->right, NOREG, 0, 0);
 	fprintf(stdout, "\tcmp %s, %s\n", registers[l], registers[r]);
-	fprintf(stdout, "\tsetg %s\n", registers[reg8(l)]);
-	fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	if (condBranchSymbol)
+	{
+		fprintf(stdout, "\tjg .L%ld\n", condBranchSymbol);
+		if (condBranchSymbol2)
+		{
+			fprintf(stdout, "\tjmp .L%ld\n", condBranchSymbol2);
+		}
+	}
+	else
+	{
+		fprintf(stdout, "\tsetg %s\n", registers[reg8(l)]);
+		fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	}
 	freeReg(r);
 	return l;
 }
@@ -273,8 +317,19 @@ static uint64_t genLowerEqual(KscTree *node, uint64_t acc, uint64_t condBranchSy
 	uint64_t l = genExpr(node->left, acc, 0, 0);
 	uint64_t r = genExpr(node->right, NOREG, 0, 0);
 	fprintf(stdout, "\tcmp %s, %s\n", registers[l], registers[r]);
-	fprintf(stdout, "\tsetle %s\n", registers[reg8(l)]);
-	fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	if (condBranchSymbol)
+	{
+		fprintf(stdout, "\tjle .L%ld\n", condBranchSymbol);
+		if (condBranchSymbol2)
+		{
+			fprintf(stdout, "\tjmp .L%ld\n", condBranchSymbol2);
+		}
+	}
+	else
+	{
+		fprintf(stdout, "\tsetle %s\n", registers[reg8(l)]);
+		fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	}
 	freeReg(r);
 	return l;
 }
@@ -284,8 +339,19 @@ static uint64_t genGreaterEqual(KscTree *node, uint64_t acc, uint64_t condBranch
 	uint64_t l = genExpr(node->left, acc, 0, 0);
 	uint64_t r = genExpr(node->right, NOREG, 0, 0);
 	fprintf(stdout, "\tcmp %s, %s\n", registers[l], registers[r]);
-	fprintf(stdout, "\tsetge %s\n", registers[reg8(l)]);
-	fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	if (condBranchSymbol)
+	{
+		fprintf(stdout, "\tjge .L%ld\n", condBranchSymbol);
+		if (condBranchSymbol2)
+		{
+			fprintf(stdout, "\tjmp .L%ld\n", condBranchSymbol2);
+		}
+	}
+	else
+	{
+		fprintf(stdout, "\tsetge %s\n", registers[reg8(l)]);
+		fprintf(stdout, "\tmovzx %s, %s\n", registers[l], registers[reg8(l)]);
+	}
 	freeReg(r);
 	return l;
 }
@@ -294,8 +360,19 @@ static uint64_t genLogicalNot(KscTree *node, uint64_t acc, uint64_t condBranchSy
 {
 	uint64_t u = genExpr(node->left, acc, 0, 0);
 	fprintf(stdout, "\ttest %s, %s\n", registers[u], registers[u]);
-	fprintf(stdout, "\tsete %s\n", registers[reg8(u)]);
-	fprintf(stdout, "\tmovzx %s, %s\n", registers[u], registers[reg8(u)]);
+	if (condBranchSymbol)
+	{
+		fprintf(stdout, "\tje .L%ld\n", condBranchSymbol);
+		if (condBranchSymbol2)
+		{
+			fprintf(stdout, "\tjmp .L%ld\n", condBranchSymbol2);
+		}
+	}
+	else
+	{
+		fprintf(stdout, "\tsete %s\n", registers[reg8(u)]);
+		fprintf(stdout, "\tmovzx %s, %s\n", registers[u], registers[reg8(u)]);
+	}
 	return u;
 }
 
@@ -463,17 +540,55 @@ condBranchSymbolResolve:
 	case KSC_TREE_LOGICAL_NOT: return genLogicalNot(node, acc, condBranchSymbol, condBranchSymbol2);
 	case KSC_TREE_LOGICAL_AND: return genLogicalAnd(node, acc, condBranchSymbol, condBranchSymbol2);
 	case KSC_TREE_LOGICAL_OR: return genLogicalOr(node, acc, condBranchSymbol, condBranchSymbol2);
+	case KSC_TREE_COMMA:
+		genExpr(node->left, acc, condBranchSymbol, condBranchSymbol2);
+	  ret = genExpr(node->right, acc, condBranchSymbol, condBranchSymbol2);
+		goto condBranchSymbolResolve;
+	}
+}
+
+static uint64_t getTypeSize(const KscType *pType)
+{
+	switch (pType->kind)
+	{
+	case KSC_TYPE_BYTE:
+	case KSC_TYPE_SBYTE:
+		return 1;
+	case KSC_TYPE_SHORT:
+	case KSC_TYPE_USHORT:
+	case KSC_TYPE_HALF:
+		return 2;
+	case KSC_TYPE_INT:
+	case KSC_TYPE_UINT:
+	case KSC_TYPE_FLOAT:
+		return 4;
+	case KSC_TYPE_LONG:
+	case KSC_TYPE_ULONG:
+	case KSC_TYPE_DOUBLE:
+	case KSC_TYPE_POINTER:
+		return 8;
+	default:
+		fprintf(stdout, "TODO: other type sizes\n");
+		abort();
 	}
 }
 
 static uint64_t labels = 1;
 
-void genInit(void)
+static void genInit(void)
 {
 	freeAllRegs();
 	labels = 1;
 }
 
+static void genStackFrame(uint64_t nBytes)
+{
+	fprintf(stdout, "\tsub rsp, %ld\n", nBytes);
+	fprintf(stdout, "\tpush rbp\n");
+	fprintf(stdout, "\tmov rbp, rsp\n");
+}
+
+static void genStackFrameRestore(void) { fprintf(stdout, "\tpop rbp\n"); }
 static void genJump(uint64_t l) { fprintf(stdout, "\tjmp .L%ld\n", l); }
 static void genRet(void){ fprintf(stdout, "\tret\n"); }
 static uint64_t genLabel(void) { return labels++; }
@@ -488,4 +603,8 @@ KscIGenMod x86_64gm =
 	.printLabel = printLabel,
 	.genJump = genJump,
 	.returnAccumulator = NOREG,
+	.alignmentBytes = 8,
+	.getTypeSize = getTypeSize,
+	.genStackFrame = genStackFrame,
+	.genStackFrameRestore = genStackFrameRestore,
 };

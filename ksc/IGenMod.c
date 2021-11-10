@@ -17,6 +17,26 @@ uint64_t KscGenGetReturnAcc(void)
 	return mod->returnAccumulator;
 }
 
+uint64_t KscGenGetAlignment(void)
+{
+	return mod->alignmentBytes;
+}
+
+uint64_t KscGenGetTypeSize(const KscType *type)
+{
+	return mod->getTypeSize(type);
+}
+
+void KscGenStackFrameRestore(void)
+{
+	return mod->genStackFrameRestore();
+}
+
+void KscGenStackFrame(uint64_t nBytes)
+{
+	return mod->genStackFrame(nBytes);
+}
+
 void KscGenInit(void)
 {
 	mod->genInit();

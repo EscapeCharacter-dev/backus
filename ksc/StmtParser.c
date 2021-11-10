@@ -5,6 +5,9 @@
 #include "Lex.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
+static bool_t statementsYet = FALSE;
 
 static void parseRet(void)
 {
@@ -119,11 +122,13 @@ static void parseWhileStmt(void)
 
 static void parseBlkStmt(void)
 {
+	const bool_t oldDeclParseState = statementsYet;
 	KscToken tok;
 	KscLex(&tok); // '{'
 	tok.kind = 0xFF;
 	KscLexPeek(&tok);
 	bool_t first = TRUE;
+	statementsYet = FALSE;
 	while (tok.kind != '}')
 	{
 		if (!first)
@@ -135,6 +140,7 @@ static void parseBlkStmt(void)
 		if (!KscLexPeek(&tok))
 			break;
 	}
+	statementsYet = oldDeclParseState;
 	if (tok.kind != '}')
 	{
 		fprintf(stdout, "(%d, %d): non-terminated block\n", tok.line, tok.column);
@@ -143,15 +149,48 @@ static void parseBlkStmt(void)
 	KscLex(&tok);
 }
 
-static void parseDecl(void)
+typedef struct VTOEntry
 {
+	uint64_t offset;
+	char *identifier;
 	KscType type;
-	KscParseType(&type);
-	
+} VTOEntry;
+
+static VTOEntry **vto = 0;
+static uint64_t vtoOffset = 0;
+static uint64_t offsetBase = 0;
+
+static void newStackVariable(const VTOEntry *toAdd)
+{
+	vto[vtoOffset++] = malloc(sizeof(VTOEntry));
+	if (vtoOffset % 256 == 0) vto = realloc(vto, (vtoOffset + 256) * sizeof(VTOEntry *));
+	memcpy(vto[vtoOffset - 1], toAdd, sizeof(VTOEntry));
+}
+
+static VTOEntry *getStackVariableFromIdentifier(const KscToken *tok)
+{
+	uint64_t i;
+	for (i = 0; i < vtoOffset; i++)
+	{
+		if (!strcmp((char *)tok->data, vto[i]->identifier))
+			return vto[i];
+	}
+	return 0;
+}
+
+static void composeStackVariable(VTOEntry *entry, char *identifier, const KscType *type)
+{
+	entry->identifier = identifier;
+	memcpy(&entry->type, type, sizeof(KscType));
+	entry->offset = offsetBase;
+	memcpy(&entry->type, type, sizeof(KscType));
+	offsetBase += KscGenGetTypeSize(type);
+	offsetBase += offsetBase % KscGenGetAlignment();
 }
 
 void KscParseStmt(void)
 {
+	if (!vto) vto = malloc(sizeof(VTOEntry *) * 256);
 	KscToken tok;
 	if (!KscLexPeek(&tok))
 	{
@@ -160,13 +199,60 @@ void KscParseStmt(void)
 		return;
 	}
 
+	if (!statementsYet)
+	{
+		KscType type;
+		if (KscParseType(&type))
+		{
+			KscLex(&tok); // ident
+			if (tok.kind != KSC_IDENT)
+			{
+				volatile KscToken *v = KscLexLastGoodTokenPtr();
+				fprintf(stdout, "(%d, %d): expected an identifier after type\n", v->line, v->column);
+				return;
+			}
+			KscLexPeek(&tok);
+			if (tok.kind == ';')
+			{
+				KscLex(&tok);
+				VTOEntry entry;
+				composeStackVariable(&entry, (char *)tok.data, &type);
+				newStackVariable(&entry);
+				return;
+			}
+			else if (tok.kind == '=')
+			{
+				fprintf(stdout, "TODO: decl assign\n");
+				abort();
+				KscTree *tree = KscParseExpr(0);
+				KscFreeTree(tree);
+			}
+			else
+			{
+				volatile KscToken *v = KscLexLastGoodTokenPtr();
+				fprintf(stdout, "(%d, %d): expected ';' or '=' after ident\n", v->line, v->column);
+				return;
+			}
+		}
+		statementsYet = TRUE;
+		KscGenStackFrame(offsetBase);
+	}
+
 	switch (tok.kind)
 	{
 	case KSC_KEYWORD_IF: parseIfStmt(); break;
 	case KSC_KEYWORD_RETURN: parseRet(); break;
 	case KSC_KEYWORD_WHILE: parseWhileStmt(); break;
 	case ';': KscLex(&tok); break;
-	case '{': parseBlkStmt(); break;
+	case '{':
+		{
+			const uint64_t oldOffset = offsetBase;
+			offsetBase = 0;
+			parseBlkStmt();
+			offsetBase = oldOffset;
+			KscGenStackFrameRestore();
+			break;
+		}
 	default:
 		{
 			KscTree *tree = KscParseExpr(0);

@@ -9,12 +9,16 @@
 typedef struct KscIGenMod
 {
 	uint64_t returnAccumulator;
+	uint64_t alignmentBytes;
 	uint64_t (*genExpression)(KscTree *tree, uint64_t accumulator, uint64_t condBranch, uint64_t elseCondBranch);
 	void (*genJump)(uint64_t lIterator);
 	void (*genReturn)(void);
 	void (*genInit)(void);
 	uint64_t (*genLabel)(void);
 	void (*printLabel)(uint64_t l);
+	uint64_t (*getTypeSize)(const KscType *pType);
+	void (*genStackFrame)(uint64_t nBytes);
+	void (*genStackFrameRestore)(void);
 } KscIGenMod;
 
 // Selects a generator.
@@ -26,6 +30,18 @@ uint64_t KscGenExpr(KscTree *tree, uint64_t accumulator, uint64_t condBranch, ui
 
 // Gets the return statement accumulator.
 uint64_t KscGenGetReturnAcc(void);
+
+// Gets the alignement requirement for that target architecture.
+uint64_t KscGenGetAlignment(void);
+
+// Gets the type's size
+uint64_t KscGenGetTypeSize(const KscType *type);
+
+// Creates a stack frame of n bytes.
+void KscGenStackFrame(uint64_t nBytes);
+
+// Restores a previous stack frame.
+void KscGenStackFrameRestore(void);
 
 // Performs initialization of the generator.
 void KscGenInit(void);
