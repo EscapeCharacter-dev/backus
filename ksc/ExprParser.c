@@ -246,8 +246,17 @@ static KscTree *pPrimary(void)
 		tree->type->childType->attributes |= KSC_TYPE_ATTRIBUTE_CONST;
 		return tree;
 	case KSC_IDENT:
-		tree = newAtom(KSC_TREE_IDENTIFIER, &tok);
-		return tree;
+		{
+			KscType *type = KscStmtGetStackVariableType((const KscToken *)&tok);
+			if (!type)
+			{
+				fprintf(stdout, "(%d, %d): undefined variable '%s'\n", tok.line, tok.column, (char *)tok.data);
+				return 0;
+			}
+			tree = newAtom(KSC_TREE_IDENTIFIER, &tok);
+			tree->type = type;
+			return tree;
+		}
 	case '(':
 	{
 		tok.kind = 0xFF;

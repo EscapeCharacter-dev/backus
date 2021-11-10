@@ -1,6 +1,7 @@
 #include "../IGenMod.h"
 #include "../NodeKinds.h"
 #include "../TypeKinds.h"
+#include "../Parser.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -24,6 +25,22 @@ static const char *registers[] =
 	"r14", "r14d", "r14w", "r14b",
 	"r15", "r15d", "r15w", "r15b",
 	"rcx", "ecx",  "cx",   "cl",
+};
+
+static const char *pointerLocations[] =
+{
+	"qword", "dword", "word", "byte",
+	"qword", "dword", "word", "byte",
+	"qword", "dword", "word", "byte",
+	"qword", "dword", "word", "byte",
+	"qword", "dword", "word", "byte",
+	"qword", "dword", "word", "byte",
+	"qword", "dword", "word", "byte",
+	"qword", "dword", "word", "byte",
+	"qword", "dword", "word", "byte",
+	"qword", "dword", "word", "byte",
+	"qword", "dword", "word", "byte",
+	"qword", "dword", "word", "byte",
 };
 
 static bool_t usemap[] =
@@ -442,6 +459,13 @@ static uint64_t genLogicalOr(KscTree *node, uint64_t acc, uint64_t condBranchSym
 	return l;
 }
 
+static uint64_t genILoad(KscTree *node, uint64_t acc)
+{
+	fprintf(stdout, "\tmov %s, %s ptr [rbp-%ld]\n",
+		registers[acc], pointerLocations[acc], KscStmtGetStackVariableOffset((const KscToken *)&node->token));
+	return acc;
+}
+
 static uint64_t genExpr(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, uint64_t condBranchSymbol2)
 {
 	if (acc == NOREG)
@@ -507,6 +531,7 @@ static uint64_t genExpr(KscTree *node, uint64_t acc, uint64_t condBranchSymbol, 
 				goto condBranchSymbolResolve;
 			}
 		}
+	case KSC_TREE_IDENTIFIER: ret = genILoad(node, acc); goto condBranchSymbolResolve;
 	case KSC_TREE_LITERAL_INTEGER: ret = genILiteral(node, acc); goto condBranchSymbolResolve;
 	case KSC_TREE_ADD: ret = genIAdd(node, acc); goto condBranchSymbolResolve;
 	case KSC_TREE_SUB: ret = genISub(node, acc); goto condBranchSymbolResolve;

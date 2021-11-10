@@ -11,5 +11,9 @@ KscTree *KscParseExpr(int oprec);
 void KscParseStmt(void);
 // Frees a binary tree.
 void KscFreeTree(KscTree *tree);
+// Gets a variable's offset from stack.
+uint64_t KscStmtGetStackVariableOffset(const KscToken *tok);
+// Gets a variable's type from stack.
+KscType *KscStmtGetStackVariableType(const KscToken *tok);
 
 #endif

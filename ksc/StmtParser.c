@@ -178,6 +178,20 @@ static VTOEntry *getStackVariableFromIdentifier(const KscToken *tok)
 	return 0;
 }
 
+KscType *KscStmtGetStackVariableType(const KscToken *tok)
+{
+	KscType *t = malloc(sizeof(KscType));
+	VTOEntry *v = getStackVariableFromIdentifier(tok);
+	t = v ? &v->type : 0;
+	return t;
+}
+
+uint64_t KscStmtGetStackVariableOffset(const KscToken *tok)
+{
+	VTOEntry *v = getStackVariableFromIdentifier(tok);
+	return v ? v->offset : 0;
+}
+
 static void composeStackVariable(VTOEntry *entry, char *identifier, const KscType *type)
 {
 	entry->identifier = identifier;
